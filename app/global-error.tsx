@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import { useEffect, useState } from "react";
 
 import { copyToClipboard } from "@/lib/clipboard";
+import { tentarRecarregarSeChunkDesatualizado } from "@/lib/errors/stale-chunk";
 
 export default function GlobalError({
   error,
@@ -14,13 +15,58 @@ export default function GlobalError({
 }) {
   const [eventId, setEventId] = useState<string | undefined>(undefined);
   const [copied, setCopied] = useState(false);
+  const [recarregando, setRecarregando] = useState(false);
 
   useEffect(() => {
+    if (tentarRecarregarSeChunkDesatualizado(error)) {
+      setRecarregando(true);
+      return;
+    }
     const id = Sentry.captureException(error);
     setEventId(id);
   }, [error]);
 
   const displayId = eventId ?? error.digest ?? "—";
+
+  if (recarregando) {
+    return (
+      <html lang="pt-BR">
+        <body
+          style={{
+            margin: 0,
+            fontFamily:
+              "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+            background: "#fafaf9",
+            color: "#1c1917",
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "2rem",
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 480,
+              width: "100%",
+              background: "white",
+              border: "1px solid #e7e5e4",
+              borderRadius: 12,
+              padding: "2rem",
+              textAlign: "center",
+            }}
+          >
+            <h1 style={{ fontSize: "1.5rem", margin: "0 0 0.5rem", fontWeight: 600 }}>
+              Atualizando…
+            </h1>
+            <p style={{ color: "#57534e", margin: 0 }}>
+              O sistema foi atualizado enquanto esta aba estava aberta. Recarregando a página.
+            </p>
+          </div>
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html lang="pt-BR">

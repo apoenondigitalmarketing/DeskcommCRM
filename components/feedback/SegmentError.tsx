@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { copyToClipboard } from "@/lib/clipboard";
+import { tentarRecarregarSeChunkDesatualizado } from "@/lib/errors/stale-chunk";
 
 export interface SegmentErrorProps {
   error: Error & { digest?: string };
@@ -15,13 +16,31 @@ export interface SegmentErrorProps {
 export function SegmentError({ error, reset, segment }: SegmentErrorProps) {
   const [eventId, setEventId] = useState<string | undefined>(undefined);
   const [copied, setCopied] = useState(false);
+  const [recarregando, setRecarregando] = useState(false);
 
   useEffect(() => {
+    if (tentarRecarregarSeChunkDesatualizado(error)) {
+      setRecarregando(true);
+      return;
+    }
     const id = Sentry.captureException(error, {
       tags: segment ? { segment } : undefined,
     });
     setEventId(id);
   }, [error, segment]);
+
+  if (recarregando) {
+    return (
+      <main className="flex min-h-[60vh] items-center justify-center p-8">
+        <Card className="w-full max-w-md p-8 text-center">
+          <h1 className="text-xl font-semibold">Atualizando…</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            O sistema foi atualizado enquanto esta aba estava aberta. Recarregando a página.
+          </p>
+        </Card>
+      </main>
+    );
+  }
 
   const displayId = eventId ?? error.digest ?? "—";
 
