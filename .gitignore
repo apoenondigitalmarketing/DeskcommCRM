@@ -108,3 +108,19 @@ evidence/.sonda-score-residuo.json
 
 # sessão reusada pelas jornadas (contém tokens)
 .auth/
+
+# hostgator-setup-kit/deskcommcrm/ pode ser um REPOSITÓRIO GIT SEPARADO (tem
+# seu próprio .git), não uma pasta comum deste repo — é o clone do kit de
+# instalação usado para operar o CRM numa VPS, e pode conter um .env com
+# segredos de instalação. Sem esta linha, `git add -A` aqui de fora avisa
+# "adding embedded git repository" e mesmo assim marca a pasta como um
+# ponteiro fantasma (não um submódulo de verdade) — segredos que porventura
+# existam lá dentro não vazam por esse caminho (o .gitignore PRÓPRIO daquele
+# repo interno já deve bloquear isso), mas suja o histórico deste repo com
+# uma referência quebrada. Ignorar a pasta inteira aqui evita depender só da
+# proteção interna.
+hostgator-setup-kit/deskcommcrm/
+
+# doutrina local desta VPS, fora do repo público (mantida como nota no cofre
+# Obsidian privado, com backup)
+CLAUDE.local.md

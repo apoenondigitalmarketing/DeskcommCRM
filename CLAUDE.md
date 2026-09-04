@@ -330,6 +330,30 @@ Ao mexer em schema, RLS, RBAC, atribuição, escopo, roteamento, follow-up, webh
 
 ---
 
+## `hostgator-setup-kit/deskcommcrm/` pode ser um repositório Git SEPARADO
+
+Em instalações self-host é comum existir, dentro do checkout deste repo, uma pasta
+`hostgator-setup-kit/deskcommcrm/` — clone do kit de instalação usado para operar o CRM
+na VPS (pode conter `.env` com segredos de instalação). Quando isso acontece, essa pasta
+tem seu **próprio `.git`**, ou seja, é um repositório independente, não uma pasta comum
+deste repo — `git log`, `git remote -v` etc. rodados de lá de dentro respondem pelo
+repositório dela, não por este.
+
+**Por isso ela está no `.gitignore` deste repo** (linha
+`hostgator-setup-kit/deskcommcrm/`, adicionada em 2026-09-04). Sem essa
+linha, um `git add -A` rodado aqui de fora avisa "adding embedded git
+repository" e mesmo assim marca a pasta como um ponteiro fantasma (não um
+submódulo de verdade — não existe `.gitmodules`) — segredos que porventura
+existam lá dentro não vazam por esse caminho específico (o `.gitignore`
+PRÓPRIO do repositório interno já deve bloquear isso, redundantemente), mas
+o histórico deste repo fica sujo com uma referência quebrada.
+
+**Se algum dia essa pasta precisar mesmo estar rastreada por este repo**
+(não é o caso hoje), a forma correta é `git submodule add`, nunca deixar o
+`.gitignore` cair.
+
+---
+
 ## Migrations & Banco — DOUTRINA (projeto open-source)
 
 **Este projeto é open-source. Toda mudança de schema DEVE sair como migration versionada** — quem clonou uma versão antiga do banco precisa conseguir atualizar aplicando as migrations em ordem. **Nunca** aplique `ALTER`/`CREATE` solto no banco sem o arquivo correspondente. Isto é critério de aceite de TODA sessão, não opcional.
